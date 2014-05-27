@@ -4,6 +4,7 @@ var processInput = function (input) {
     roboInstructions = [];
 
   // patterns to filter input
+  //you have to include split function that takes into account multiple lines
   var patternSplitLines = /[\r?\n]+/;
   var patternGridDefinition = /\d{1,2}\s+\d{1,2}/;
   var patternRobotPosition = /\d{1,2}s+\d{1,2}s+[NESW]s+/;
@@ -33,6 +34,7 @@ var processInput = function (input) {
   function roboCreate (lines){
     for (var i = 0; i < lines.length; i++) {
       var command = lines[i];
+      console.log("command", lines)
       var xy = command.match(patternGridDefinition)[0].split(patternSplitWhitespace);
       var direction = command.match(patternDirection)[0];
       var instruction = command.match(patternInstruction)[0];
@@ -40,9 +42,11 @@ var processInput = function (input) {
     }
     return roboInstructions
   };
+
   gridCoordinates = lines.shift().match(patternGridDefinition)[0].split(patternSplitWhitespace);
 
   return [gridCoordinates, roboCreate(lines)]
+
 }
 
 
@@ -73,10 +77,10 @@ function Robot (x, y, direction, instruction) {
   this.position = {
         "x":x,
         "y":y,
-        "LOST": false
   };
   this.direction = direction;
   this.instruction = instruction;
+  this.lost = false;
 }
 
 Robot.prototype.turnLeft = function (direction) {
@@ -92,7 +96,8 @@ Robot.prototype.turnRight = function (direction) {
 }
 
 Robot.prototype.moveForward = function (direction, position) {
-  var newPosition = position;
+  var oldPosition = {x: position.x, y: position.y};
+  var newPosition = {x: position.x, y: position.y};
 
   if (direction === "N") {newPosition.x ++};
   if (direction === "E") {newPosition.y ++};
@@ -100,10 +105,15 @@ Robot.prototype.moveForward = function (direction, position) {
   if (direction === "W") {newPosition.y --};
 
   if (mars.isInside(newPosition) === false) {
-    if (mars.valueAt(newPosition) === "scent") {
-      newPosition = position;
+    console.log("lets hope");
+    if (mars.valueAt(oldPosition) === "scent") {
+      newPosition = oldPosition;
+      console.log("we didnt go")
     } else {
-      mars.scentAt(position)
+      mars.scentAt(oldPosition);
+      console.log("we scented", oldPosition)
+      this.lost = true;
+      return oldPosition;
     }
   }
 
@@ -116,8 +126,12 @@ Robot.prototype.move = function () {
     // take into account yet defined commands
     if (this.instruction.charAt(i) === 'L') {this.direction = (this.turnLeft(this.direction))};
     if (this.instruction.charAt(i) === 'R') {this.direction = (this.turnRight(this.direction))};
-    if (this.instruction.charAt(i) === 'F') {this.position = (this.moveForward(this.direction,this.position))};
-    if (this.position.LOST === true) {break}
+    if (this.instruction.charAt(i) === 'F') {
+      this.position = (this.moveForward(this.direction, this.position));
+      if (this.lost === true) {
+        console.log("Into lostbreaker")
+      }
+    };
   }
   output.push(this.position.x + " " + this.position.y + " " + this.direction)
 }
@@ -137,7 +151,9 @@ initiate = function () {
   var goClick = document.getElementById("go");
   goClick.onclick = function run(){
     var input = document.getElementById("instructions").value;
+    console.log("raw input is",input);
     commands = processInput(input);
+    console.log("commands are",commands);
     mars = new Planet (commands[0][0],commands[0][1]);
     startRobots(commands[1]);
     document.getElementById("output").value = output.join("\n");
