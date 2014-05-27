@@ -4,7 +4,10 @@ var processInput = function (input) {
     roboInstructions = [];
 
   // patterns to filter input
-  //you have to include split function that takes into account multiple lines
+  //you have to include split function that takes into account multiple lines, only one digit in the beginning etc.
+  //how can i throw nicer errors
+
+
   var patternSplitLines = /[\r?\n]+/;
   var patternGridDefinition = /\d{1,2}\s+\d{1,2}/;
   var patternRobotPosition = /\d{1,2}s+\d{1,2}s+[NESW]s+/;
@@ -53,9 +56,10 @@ var processInput = function (input) {
 // set up Planet grid constructor
 function Planet (width, height) {
 
-  this.width = width;
-  this.height = height;
-  this.cells = new Array (height * width);
+  this.width = parseInt(width) + 1;
+  this.height = parseInt(height) + 1;
+  // this.cells = new Array ((height + 1) * (width + 1));
+  this.cells = new Array (height * width)
 };
 
 Planet.prototype.valueAt = function (point) {
@@ -95,29 +99,27 @@ Robot.prototype.turnRight = function (direction) {
   return directions[currentDir + 1];
 }
 
-Robot.prototype.moveForward = function (direction, position) {
-  var oldPosition = {x: position.x, y: position.y};
-  var newPosition = {x: position.x, y: position.y};
+Robot.prototype.moveForward = function () {
+  var oldPosition = {x: this.position.x, y: this.position.y};
+  var newPosition = {x: this.position.x, y: this.position.y};
 
-  if (direction === "N") {newPosition.x ++};
-  if (direction === "E") {newPosition.y ++};
-  if (direction === "S") {newPosition.x --};
-  if (direction === "W") {newPosition.y --};
+  if (this.direction === "N") {this.position.y ++};
+  if (this.direction === "E") {this.position.x ++};
+  if (this.direction === "S") {this.position.y --};
+  if (this.direction === "W") {this.position.x --};
 
-  if (mars.isInside(newPosition) === false) {
+  if (mars.isInside(this.position) === false) {
     console.log("lets hope");
     if (mars.valueAt(oldPosition) === "scent") {
-      newPosition = oldPosition;
+      this.position = oldPosition;
       console.log("we didnt go")
     } else {
       mars.scentAt(oldPosition);
       console.log("we scented", oldPosition)
+      this.position = oldPosition;
       this.lost = true;
-      return oldPosition;
     }
   }
-
-  return newPosition;
 }
 
 Robot.prototype.move = function () {
@@ -127,13 +129,17 @@ Robot.prototype.move = function () {
     if (this.instruction.charAt(i) === 'L') {this.direction = (this.turnLeft(this.direction))};
     if (this.instruction.charAt(i) === 'R') {this.direction = (this.turnRight(this.direction))};
     if (this.instruction.charAt(i) === 'F') {
-      this.position = (this.moveForward(this.direction, this.position));
+      this.moveForward();
       if (this.lost === true) {
-        console.log("Into lostbreaker")
+        break;
       }
     };
   }
-  output.push(this.position.x + " " + this.position.y + " " + this.direction)
+  if (this.lost === true) {
+    output.push(this.position.x + " " + this.position.y + " " + this.direction + " " + "LOST")
+  } else {
+    output.push(this.position.x + " " + this.position.y + " " + this.direction)
+  }
 }
 
 // set up buttons and define functions to run on click
