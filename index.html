@@ -1,0 +1,39 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Martian Robots</title>
+  <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="martian_robots.css">
+</head>
+
+<body>
+  <h2>Martian Robots</h2>
+  <table id='board'></table>
+
+  <div class="col-md-5">
+      <textarea type="textarea" id="instructions" type="text" autofocus="autofocus" rows="10" class="form-control" placeholder="Enter grid and robot instructions here"></textarea>
+  </div>
+
+  <div class="col-md-2" id='go'>
+    <div class="row">
+      <button id="go" type="submit" class='btn btn-success'>Go Robot</button>
+      <button id="random" class='btn btn-warning'>Random</button>
+      <button id="clear" class='btn btn-info'>Clear</button>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <textarea type="textarea" id="output" readonly="readonly" rows="10" class="form-control" placeholder="Output goes here"></textarea>
+  </div>
+
+  <div id='control_panel'>
+<!--     <button class='btn btn-primary'>Auto-Play</button>
+    <button class='btn btn-danger'>Pause</button> -->
+  </div>
+
+  <script src="martian_robots.js"></script>
+
+</body>
+</html>
