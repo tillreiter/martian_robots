@@ -3,33 +3,33 @@ function UserInput(input) {
 }
 
 UserInput.prototype.verify = function (input){
-  var pGridAndCommands = /(\d+\s+\d+\s*\n+)((\d+\s+\d+\s*[NESW]{1}\s*\n+[LRF]*\s*)+)/i;
+  var pGridAndCommands = /(\d+\s+\d+\s*\n+)((\d+\s+\d+\s*[NESW]{1}\s*\n+[LRF]+\s*\n*)+)/i;
 
-  var verify = pGridAndCommands.test(input);
+  var verify = input.match(pGridAndCommands);
   if (!verify) {
     console.log("You're input is not correct my friend");
-    return verify;
+    return false;
   } else {
-    return input;
+    console.log('Input can get processed');
+    return verify[0];
   }
 };
 
 UserInput.prototype.processInput = function (){
-  this.roboInstructions = [];
-
   var pSplitLines = /[\r?\n]+/;
   var pGridDefinition = /\d{1,2}\s+\d{1,2}/;
   var pSplitWhitespace = /\s+/;
   var pDirection = /[NESW]{1}/;
   var pInstruction = /[RLF]+/;
 
+  var lines = splitLines(this.userInput);
+
+  this.roboInstructions = [];
+  this.gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
+
   function splitLines(string) {
     return string.split(pSplitLines);
   }
-
-  var lines = splitLines(this.userInput);
-
-  this.gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
 
   for (var i = 0; i < lines.length; i+=2) {
     var rawCoordinates = lines[i];
@@ -39,11 +39,9 @@ UserInput.prototype.processInput = function (){
     var instruction = rawInstruction.match(pInstruction)[0];
     this.newRoboCommand(xy[0],xy[1],direction,instruction);
   }
-  return this;
 };
 
 UserInput.prototype.newRoboCommand = function newRoboCommand (x,y,direction,instruction) {
-
   var command = {
     x: x,
     y: y,
@@ -124,25 +122,29 @@ Robot.prototype.moveForward = function () {
 
 Robot.prototype.move = function () {
 
-  //if initial robot is not in grid not taken care of yet
+  //if initial robot position is not in grid it gets ignored
+  if (mars.isInside(this.position)) {
+    for (var i = 0; i < this.instruction.length; i++) {
 
-  for (var i = 0; i < this.instruction.length; i++) {
-    // take into account yet defined commands
-    if (this.instruction.charAt(i) === 'L') {this.direction = (this.turnLeft(this.direction))};
-    if (this.instruction.charAt(i) === 'R') {this.direction = (this.turnRight(this.direction))};
-    if (this.instruction.charAt(i) === 'F') {
-      this.moveForward();
-      if (this.lost === true) {
-        break;
-      }
+      // take into account yet defined commands
+      if (this.instruction.charAt(i) === 'L') {this.direction = (this.turnLeft(this.direction))};
+      if (this.instruction.charAt(i) === 'R') {this.direction = (this.turnRight(this.direction))};
+      if (this.instruction.charAt(i) === 'F') {
+        this.moveForward();
+        if (this.lost === true) {
+          break;
+        }
+      };
     };
-  }
-  if (this.lost === true) {
-    output.push(this.position.x + " " + this.position.y + " " + this.direction + " " + "LOST")
-  } else {
-    output.push(this.position.x + " " + this.position.y + " " + this.direction)
-  }
-}
+
+    // check if robot wants to move off grid, stop if already scented, otherwise scent
+    if (this.lost === true) {
+      output.push(this.position.x + " " + this.position.y + " " + this.direction + " " + "LOST")
+    } else {
+      output.push(this.position.x + " " + this.position.y + " " + this.direction)
+    };
+  };
+};
 
 // set up buttons and define functions to run on click
 initiate = function () {
@@ -161,7 +163,7 @@ initiate = function () {
     var input = document.getElementById("instructions").value;
     var command = new UserInput(input);
     if (!command.userInput) {
-      alert("this input seems lousy!")
+      alert("this input seems lousy! Did you enter it in the correct format?")
     } else {
       command.processInput()
       console.log("command is",command);
