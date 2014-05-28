@@ -1,23 +1,100 @@
+function UserInput(input) {
+  this.userInput = this.verify(input);
+}
+
+UserInput.prototype.verify = function (input){
+  var pGridAndCommands = /(\d+\s+\d+\s*\n+)((\d+\s+\d+\s*[NESW]{1}\s*\n+[LRF]*\s*)+)/i;
+
+  var verify = pGridAndCommands.test(input);
+  if (!verify) {
+    console.log("You're input is not correct my friend");
+    return verify;
+  } else {
+    return input;
+  }
+};
+
+UserInput.prototype.processInput = function (){
+  this.roboInstructions = [];
+
+  var pSplitLines = /[\r?\n]+/;
+  var pGridDefinition = /\d{1,2}\s+\d{1,2}/;
+  var pSplitWhitespace = /\s+/;
+  var pDirection = /[NESW]{1}/;
+  var pInstruction = /[RLF]+/;
+
+  function splitLines(string) {
+    return string.split(pSplitLines);
+  }
+
+  var lines = splitLines(this.userInput);
+
+  this.gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
+
+  for (var i = 0; i < lines.length; i+=2) {
+    var rawCoordinates = lines[i];
+    var rawInstruction = lines [i+1];
+    var xy = rawCoordinates.match(pGridDefinition)[0].split(pSplitWhitespace);
+    var direction = rawCoordinates.match(pDirection)[0];
+    var instruction = rawInstruction.match(pInstruction)[0];
+    this.newRoboCommand(xy[0],xy[1],direction,instruction);
+  }
+  return this;
+};
+
+UserInput.prototype.newRoboCommand = function newRoboCommand (x,y,direction,instruction) {
+
+  var command = {
+    x: x,
+    y: y,
+    direction: direction,
+    instruction: instruction
+  };
+  this.roboInstructions.push(command);
+};
+
+
+
+
+
+
+
+
 //prepare user input
 var processInput = function (input) {
     var userInput = input;
     roboInstructions = [];
 
-  // patterns to filter input
-  var patternSplitLines = /[\r?\n]+/;
-  var patternGridDefinition = /\d{1,2}\s+\d{1,2}/;
-  var patternRobotPosition = /\d{1,2}s+\d{1,2}s+[NESW]s+/;
-  var patternRobotInstruction = /w+/;
-  var patternSplitWhitespace = /\s+/;
-  var patternDirection = /[NESW]{1}/;
-  // additional commands need to be added into patternInstruction. Robot.move accepts any string value
-  var patternInstruction = /[RLF]+/
+  // ps to filter input
+  //you have to include split function that takes into account multiple lines, only one digit in the beginning etc.
+  //how can i throw nicer errors
+
+  var pGridAndCommands = /(\d+\s+\d+\s+)((\d+\s+\d+\s*[NESW]{1}\s*[LRF]*\s*)+)/i;
+  var pSplitLines = /[\r?\n]+/;
+  var pGridDefinition = /\d{1,2}\s+\d{1,2}/;
+  var pRobotPosition = /\d{1,2}s+\d{1,2}s+[NESW]s+/;
+  var pSplitWhitespace = /\s+/;
+  var pDirection = /[NESW]{1}/;
+  // additional commands need to be added into pInstruction. Robot.move accepts any string value
+  var pInstruction = /[RLF]+/
 
   var lines = splitLines(userInput);
 
+  var verifyInput = function (){
+    var verify = pGridAndCommands.test(userInput)
+    if (!verify) {
+      console.log("shit get out of here");
+      alert("Not correct input");
+    } else {
+      console.log("processing userInput")
+    }
+  };
+
+  verifyInput()
+
   // split input lines
   function splitLines (string) {
-    return string.split(patternSplitLines);
+    return string.split(pSplitLines);
   };
 
   function newRoboCommand (x,y,direction,instruction) {
@@ -33,35 +110,37 @@ var processInput = function (input) {
   function roboCreate (lines){
     for (var i = 0; i < lines.length; i++) {
       var command = lines[i];
-      var xy = command.match(patternGridDefinition)[0].split(patternSplitWhitespace);
-      var direction = command.match(patternDirection)[0];
-      var instruction = command.match(patternInstruction)[0];
+      console.log("command", lines)
+      var xy = command.match(pGridDefinition)[0].split(pSplitWhitespace);
+      var direction = command.match(pDirection)[0];
+      var instruction = command.match(pInstruction)[0];
       newRoboCommand(xy[0],xy[1],direction,instruction);
     }
     return roboInstructions
   };
-  console.log(lines);
 
-  gridCoordinates = lines.shift().match(patternGridDefinition)[0].split(patternSplitWhitespace);
+  gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
 
   return [gridCoordinates, roboCreate(lines)]
+
 }
 
 
 // set up Planet grid constructor
 function Planet (width, height) {
 
-  this.height = height;
-  this.width = width;
-  this.cells = new Array (height * width);
+  this.width = parseInt(width) + 1;
+  this.height = parseInt(height) + 1;
+  // this.cells = new Array ((height + 1) * (width + 1));
+  this.cells = new Array (height * width)
 };
 
 Planet.prototype.valueAt = function (point) {
   return this.cells[point.y * this.width + point.x];
 }
 
-Planet.prototype.setValueAt = function (point, value) {
-  this.cells[point.y * this.width + point.x] = value;
+Planet.prototype.scentAt = function (point) {
+  this.cells[point.y * this.width + point.x] = "scent";
 }
 
 Planet.prototype.isInside = function (point) {
@@ -74,10 +153,11 @@ function Robot (x, y, direction, instruction) {
 
   this.position = {
         "x":x,
-        "y":y
+        "y":y,
   };
   this.direction = direction;
   this.instruction = instruction;
+  this.lost = false;
 }
 
 Robot.prototype.turnLeft = function (direction) {
@@ -87,38 +167,53 @@ Robot.prototype.turnLeft = function (direction) {
 }
 
 Robot.prototype.turnRight = function (direction) {
-  console.log("Hello")
   var currentDir = directions.indexOf(direction);
   if(currentDir === 3){currentDir = -1};
   return directions[currentDir + 1];
 }
 
-Robot.prototype.moveForward = function (direction, position) {
-  var newPosition = position;
+Robot.prototype.moveForward = function () {
+  var oldPosition = {x: this.position.x, y: this.position.y};
+  var newPosition = {x: this.position.x, y: this.position.y};
 
-  if (direction === "N") {newPosition.x += 1};
-  if (direction === "E") {newPosition.y += 1};
-  if (direction === "S") {newPosition.x -= 1};
-  if (direction === "W") {newPosition.y -= 1};
+  if (this.direction === "N") {this.position.y ++};
+  if (this.direction === "E") {this.position.x ++};
+  if (this.direction === "S") {this.position.y --};
+  if (this.direction === "W") {this.position.x --};
 
-/*  if (isInside(newPosition) === false) {
-    if (valueAt(position) === "Scent") {
-      newPosition = position + " LOST";
+  if (mars.isInside(this.position) === false) {
+    console.log("lets hope");
+    if (mars.valueAt(oldPosition) === "scent") {
+      this.position = oldPosition;
+      console.log("we didnt go")
     } else {
-      setValueAt(position, "Scent")
+      mars.scentAt(oldPosition);
+      console.log("we scented", oldPosition)
+      this.position = oldPosition;
+      this.lost = true;
     }
-  }*/
-
-  return newPosition;
+  }
 }
 
-Robot.prototype.move = function (instr_arr) {
+Robot.prototype.move = function () {
 
-  for (var i = 0; i < instr_arr.length; i++) {
+  if () {}
+
+  for (var i = 0; i < this.instruction.length; i++) {
     // take into account yet defined commands
-    if (instr_arr[i] === 'L') {this.direction = (this.turnLeft(this.direction))};
-    if (instr_arr[i] === 'R') {this.direction = (this.turnRight(this.direction))};
-    if (instr_arr[i] === 'F') {this.position = (this.moveForward(this.direction,this.position))};
+    if (this.instruction.charAt(i) === 'L') {this.direction = (this.turnLeft(this.direction))};
+    if (this.instruction.charAt(i) === 'R') {this.direction = (this.turnRight(this.direction))};
+    if (this.instruction.charAt(i) === 'F') {
+      this.moveForward();
+      if (this.lost === true) {
+        break;
+      }
+    };
+  }
+  if (this.lost === true) {
+    output.push(this.position.x + " " + this.position.y + " " + this.direction + " " + "LOST")
+  } else {
+    output.push(this.position.x + " " + this.position.y + " " + this.direction)
   }
 }
 
@@ -126,25 +221,27 @@ Robot.prototype.move = function (instr_arr) {
 initiate = function () {
 
   function startRobots (commands) {
+    output = [];
     for (var i = 0; i < commands.length; i++) {
       current = commands[i];
-      robot = new Robot (current.x, current.y, current.direction, current.instruction)
+      robot = new Robot (current.x, current.y, current.direction, current.instruction);
+      robot.move();
     }
   }
 
   var goClick = document.getElementById("go");
   goClick.onclick = function run(){
     var input = document.getElementById("instructions").value;
-    var commands = processInput(input);
-    var mars = new Planet (commands[0][0],commands[0][1]);
-
-    console.log("this is mars", mars);
-    console.log("this is mars", commands);
-    document.getElementById("output").value = input;
+    console.log("raw input is",input);
+    commands = processInput(input);
+    console.log("commands are",commands);
+    mars = new Planet (commands[0][0],commands[0][1]);
+    startRobots(commands[1]);
+    document.getElementById("output").value = output.join("\n");
   };
 
   var randomClick = document.getElementById("random");
-  randomClick.onclick = function hello (){
+  randomClick.onclick = function (){
     alert('Hello')
   };
 
@@ -152,6 +249,8 @@ initiate = function () {
   var clearClick = document.getElementById("clear");
   clearClick.onclick = function (){
     document.getElementById("instructions").value = "";
+    output = [];
+    mars = {};
   };
 };
 

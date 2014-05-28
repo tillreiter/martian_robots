@@ -1,65 +1,65 @@
-//prepare user input
-var processInput = function (input) {
-    var userInput = input;
-    roboInstructions = [];
-
-  // patterns to filter input
-  //you have to include split function that takes into account multiple lines, only one digit in the beginning etc.
-  //how can i throw nicer errors
-
-
-  var patternSplitLines = /[\r?\n]+/;
-  var patternGridDefinition = /\d{1,2}\s+\d{1,2}/;
-  var patternRobotPosition = /\d{1,2}s+\d{1,2}s+[NESW]s+/;
-  var patternRobotInstruction = /w+/;
-  var patternSplitWhitespace = /\s+/;
-  var patternDirection = /[NESW]{1}/;
-  // additional commands need to be added into patternInstruction. Robot.move accepts any string value
-  var patternInstruction = /[RLF]+/
-
-  var lines = splitLines(userInput);
-
-  // split input lines
-  function splitLines (string) {
-    return string.split(patternSplitLines);
-  };
-
-  function newRoboCommand (x,y,direction,instruction) {
-    var command = {
-      x: x,
-      y: y,
-      direction: direction,
-      instruction: instruction
-    };
-    roboInstructions.push(command);
-  }
-
-  function roboCreate (lines){
-    for (var i = 0; i < lines.length; i++) {
-      var command = lines[i];
-      console.log("command", lines)
-      var xy = command.match(patternGridDefinition)[0].split(patternSplitWhitespace);
-      var direction = command.match(patternDirection)[0];
-      var instruction = command.match(patternInstruction)[0];
-      newRoboCommand(xy[0],xy[1],direction,instruction);
-    }
-    return roboInstructions
-  };
-
-  gridCoordinates = lines.shift().match(patternGridDefinition)[0].split(patternSplitWhitespace);
-
-  return [gridCoordinates, roboCreate(lines)]
-
+function UserInput(input) {
+  this.userInput = this.verify(input);
 }
 
+UserInput.prototype.verify = function (input){
+  var pGridAndCommands = /(\d+\s+\d+\s*\n+)((\d+\s+\d+\s*[NESW]{1}\s*\n+[LRF]*\s*)+)/i;
+
+  var verify = pGridAndCommands.test(input);
+  if (!verify) {
+    console.log("You're input is not correct my friend");
+    return verify;
+  } else {
+    return input;
+  }
+};
+
+UserInput.prototype.processInput = function (){
+  this.roboInstructions = [];
+
+  var pSplitLines = /[\r?\n]+/;
+  var pGridDefinition = /\d{1,2}\s+\d{1,2}/;
+  var pSplitWhitespace = /\s+/;
+  var pDirection = /[NESW]{1}/;
+  var pInstruction = /[RLF]+/;
+
+  function splitLines(string) {
+    return string.split(pSplitLines);
+  }
+
+  var lines = splitLines(this.userInput);
+
+  this.gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
+
+  for (var i = 0; i < lines.length; i+=2) {
+    var rawCoordinates = lines[i];
+    var rawInstruction = lines [i+1];
+    var xy = rawCoordinates.match(pGridDefinition)[0].split(pSplitWhitespace);
+    var direction = rawCoordinates.match(pDirection)[0];
+    var instruction = rawInstruction.match(pInstruction)[0];
+    this.newRoboCommand(xy[0],xy[1],direction,instruction);
+  }
+  return this;
+};
+
+UserInput.prototype.newRoboCommand = function newRoboCommand (x,y,direction,instruction) {
+
+  var command = {
+    x: x,
+    y: y,
+    direction: direction,
+    instruction: instruction
+  };
+  this.roboInstructions.push(command);
+};
 
 // set up Planet grid constructor
-function Planet (width, height) {
+function Planet (gridCoordinates) {
 
-  this.width = parseInt(width) + 1;
-  this.height = parseInt(height) + 1;
+  this.width = parseInt(gridCoordinates[0]) + 1;
+  this.height = parseInt(gridCoordinates[1]) + 1;
   // this.cells = new Array ((height + 1) * (width + 1));
-  this.cells = new Array (height * width)
+  this.cells = new Array (this.height * this.width)
 };
 
 Planet.prototype.valueAt = function (point) {
@@ -124,6 +124,8 @@ Robot.prototype.moveForward = function () {
 
 Robot.prototype.move = function () {
 
+  //if initial robot is not in grid not taken care of yet
+
   for (var i = 0; i < this.instruction.length; i++) {
     // take into account yet defined commands
     if (this.instruction.charAt(i) === 'L') {this.direction = (this.turnLeft(this.direction))};
@@ -157,16 +159,20 @@ initiate = function () {
   var goClick = document.getElementById("go");
   goClick.onclick = function run(){
     var input = document.getElementById("instructions").value;
-    console.log("raw input is",input);
-    commands = processInput(input);
-    console.log("commands are",commands);
-    mars = new Planet (commands[0][0],commands[0][1]);
-    startRobots(commands[1]);
-    document.getElementById("output").value = output.join("\n");
+    var command = new UserInput(input);
+    if (!command.userInput) {
+      alert("this input seems lousy!")
+    } else {
+      command.processInput()
+      console.log("command is",command);
+      mars = new Planet (command.gridCoordinates);
+      startRobots(command.roboInstructions);
+      document.getElementById("output").value = output.join("\n");
+    }
   };
 
   var randomClick = document.getElementById("random");
-  randomClick.onclick = function hello (){
+  randomClick.onclick = function (){
     alert('Hello')
   };
 
@@ -175,6 +181,7 @@ initiate = function () {
   clearClick.onclick = function (){
     document.getElementById("instructions").value = "";
     output = [];
+    mars = {};
   };
 };
 
