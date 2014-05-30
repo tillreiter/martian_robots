@@ -9,29 +9,87 @@
 </head>
 
 <body>
-  <h2>Martian Robots</h2>
-  <table id='board'></table>
+  <div class="container">
 
-  <div class="col-md-5">
-      <textarea type="textarea" id="instructions" type="text" autofocus="autofocus" rows="10" class="form-control" placeholder="Enter grid and robot instructions here"></textarea>
-  </div>
+    <div class="row" id="content">
 
-  <div class="col-md-2" id='control'>
-    <div class="row">
-      <button id="go" type="submit" class='btn btn-success'>Go Robot</button>
-      <button id="random" class='btn btn-warning'>Random</button>
-      <button id="clear" class='btn btn-info'>Clear</button>
+      <div id="statement" class="col-md-12">
+        <img src="./letter_i.png" class="png" id="till">
+        <img src="./black_heart.png" class="png" id="love">
+        <img src="./redbadger_logo.png" class="png" id="redBadger">
+      </div>
+
+
+        <div class="col-md-5">
+            <textarea type="text" id="instructions" type="text" autofocus="autofocus" rows="10" class="form-control" placeholder="Enter grid and robot instructions here"></textarea>
+        </div>
+
+        <div class="col-md-2" id='control'>
+          <div class="row">
+            <button id="go" type="submit" class='btn btn-danger'>Go Robot</button>
+            <button id="clear" class='btn btn-default btn-large'>Clear</button>
+          </div>
+        </div>
+
+        <div class="col-md-5">
+          <textarea type="text" id="output" readonly="readonly" rows="10" class="form-control" placeholder="Output goes here"></textarea>
+        </div>
+    </div>
+
+    <div>
+    <h3>Specs</h3>
+
+      <h4>The user input constructor</h4>
+      <ul>
+        <li>verifies that user input is like defined format (new line seperation, positive coordinate integers, direction (NESW), instruction string)</li>
+
+        <li>processes first line as grid coordinates of maximum 50 each</li>
+
+        <li>processes every following 2-line block as robot instructions</li>
+        <ul>
+          <li>whose first line sets position (x,y) and a direction (N,E,S,W)</li>
+          <li>whose second line contains string of maximumum 100 instruction letters</li>
+        </ul>
+      </ul>
+
+      <h4>The planet constructor</h4>
+      <ul>
+        <li>lays out a 2-dimensional grid ((x+1) * (y+1))</li>
+        <li>provides checking if position is inside grid functionality</li>
+        <li>provides cell scenting functionality</li>
+        <li>provides cell value checking functionality</li>
+      </ul>
+
+      <h4>The robot constructor</h4>
+      <ul>
+        <li>puts a robot on grid cell with its direction (if coordinates within defined planet)</li>
+
+        <li>provides turn left on same cell functionality turns ('L')</li>
+        <li>provides turn right on same cell functionality turns ('R')</li>
+
+        <li>provides move one cell forward functionality ('F')</li>
+        <ul>
+          <li>that marks last cell on grid with 'scent' if robot moves off grid</li>
+          <li>that ignores any instruction that would move it from the grid when it stands on a 'scented' grid point</li>
+        </ul>
+      </ul>
+
+      <h4>The program's output</h4>
+      <ul>
+        <li>tells the position of each robot per line in the format like position input</li>
+        <li>adds 'LOST' to the position if the robot moved off the grid</li>
+        <li>ignores robots that were initially put off grid</li>
+      </ul>
     </div>
   </div>
 
-  <div class="col-md-5">
-    <textarea type="textarea" id="output" readonly="readonly" rows="10" class="form-control" placeholder="Output goes here"></textarea>
+  <div id="footer">
+    <div class="container">
+      <p>View code on this: <a href="http://github.com">gist</a>.</p>
+    </div>
   </div>
 
-  <div id='control_panel'>
-<!--     <button class='btn btn-primary'>Auto-Play</button>
-    <button class='btn btn-danger'>Pause</button> -->
-  </div>
   <script src="martian_robots.js"></script>
+
 </body>
 </html>

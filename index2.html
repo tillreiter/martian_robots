@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Jasmine v2.0 DOM Tests Spec Runner</title>
+
+    <link rel="shortcut icon" type="image/png" href="images/jasmine_favicon.png">
+    <link rel="stylesheet" type="text/css" href="lib/jasmine-core/jasmine.css">
+
+    <script type="text/javascript" src="lib/jasmine-core/jasmine.js"></script>
+    <script type="text/javascript" src="lib/jasmine-core/jasmine-html.js"></script>
+    <script type="text/javascript" src="lib/jasmine-core/boot.js"></script>
+    <script type="text/javascript" src="lib/jasmine-core/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="lib/jasmine-core/jasmine-jquery.js"></script>
+    <script type="text/javascript" src="./martian_robots_2.js"></script>
+    <script type="text/javascript" src="./martian_robots.js"></script>
+
+
+</head>
+<body>
+  <h2>Martian Robots</h2>
+  <table id='board'></table>
+
+  <div class="col-md-5">
+      <textarea type="textarea" id="instructions" type="text" autofocus="autofocus" rows="10" class="form-control" placeholder="Enter grid and robot instructions here"></textarea>
+  </div>
+
+  <div class="col-md-2" id='control'>
+    <div class="row">
+      <button id="go" type="submit" class='btn btn-success'>Go Robot</button>
+      <button id="random" class='btn btn-warning'>Random</button>
+      <button id="clear" class='btn btn-info'>Clear</button>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <textarea type="textarea" id="output" readonly="readonly" rows="10" class="form-control" placeholder="Output goes here"></textarea>
+  </div>
+
+  <div id='control_panel'>
+<!--     <button class='btn btn-primary'>Auto-Play</button>
+    <button class='btn btn-danger'>Pause</button> -->
+  </div>
+</body>
+</html>

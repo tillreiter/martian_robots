@@ -9,6 +9,23 @@ h1, h2 {
   margin: 5px
 }
 
+#statement {
+  max-height: 80px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.png {
+  max-height: 50px;
+}
+
+#love {
+  margin-left: 2px;
+  margin-right: 19px;
+  height: 39px;
+}
+
 #control {
   text-align: center;
 }

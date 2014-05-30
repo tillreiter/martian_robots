@@ -1,0 +1,31 @@
+Specs
+
+The User Input constructor
++ verifies that user input is like defined format (new line seperation, positive coordinate integers, direction (NESW), instruction string)
++ processes first line as grid coordinates of maximum 50 each
+
++ processes every following 2-line block as robot instructions
+++ whose first line sets position (x,y) and a direction (N,E,S,W)
+++ whose second line contains string of maximumum 100 instruction letters
+
+
+The planet constructor
++ lays out a 2-dimensional grid ((x+1) * (y+1)
++ provides checking if position is inside grid functionality
++ provides cell scenting functionality
++ provides cell value checking functionality
+
+
+The robot constructor
++ puts a robot on grid cell with its direction (if coordinates within defined planet)
+
++ provides turn left on same cell functionality turns ('L')
++ provides turn right on same cell functionality turns ('R')
+
++ provides move one cell forward functionality ('F')
+++ that marks last cell on grid with 'scent' if robot moves off grid
+++ that ignores any instruction that would move it from the grid when it stands on a 'scented' grid point
+
+The program's output
++ tells the position of each robot per line in the format like position input
++ adds 'LOST' to the position if the robot moved off the grid
