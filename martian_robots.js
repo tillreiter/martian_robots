@@ -192,7 +192,7 @@ function initiate () {
         alert("Maximum grid value is 50");
       }
 
-      // only process build planet and process robot instructions if input is correct
+      // only lay out grid and process robot instructions if input is correct
       else {
 
         // lay out current grid
