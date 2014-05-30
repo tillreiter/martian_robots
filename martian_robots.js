@@ -1,11 +1,9 @@
-// Hello.
-//
-// This is JSHint, a tool that helps to detect errors and potential
-// problems in your JavaScript code.
-//
-// To start, simply enter some JavaScript anywhere on this page. Your
-// report will appear on the right side.
-//// UserInput constructor to check input and clean it up for further processing
+// martian_robots.js
+
+// define global object to save current planet and output
+var global = {};
+
+// UserInput constructor to check input and clean it up for further processing
 function UserInput(input) {
   this.userInput = this.verify(input);
   this.roboInstructions = [];
@@ -14,15 +12,13 @@ function UserInput(input) {
 // if correct commands are entered pull them out and ignore the rest; wrong input returns false
 UserInput.prototype.verify = function (input){
 
-  // regex to filter out entire command, if new instructions get added to program add to [LRF] in pGridAndCommands and adjust Robot prototype accordingly
+  // input regex, if new instruction letter gets added to program modify [LRF] in regex and adjust Robot.prototype accordingly
   var pGridAndCommands = /(\d+\s+\d+\s*\n+)((\d+\s+\d+\s*[NESW]{1}\s*\n+[LRF]+\s*\n*)+)/i;
 
   var verify = input.match(pGridAndCommands);
   if (!verify) {
-    console.log("You're input is not correct my friend");
     return false;
   } else {
-    console.log('Input can get processed');
     return verify[0];
   }
 };
@@ -32,19 +28,20 @@ UserInput.prototype.processInput = function (){
   var pSplitLines = /[\r?\n]+/;
   var pGridDefinition = /\d{1,2}\s+\d{1,2}/;
   var pSplitWhitespace = /\s+/;
-  var pDirection = /[NESW]{1}/;
+  var pDirection = /[NESW]/;
   var pInstruction = /[RLF]+/;
 
-  var lines = splitLines(this.userInput);
-
-  // first line is always grid definition and gets shifted from lines array
-  this.gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
+  // create array of input and throw out empty elements
+  var lines = splitLines(this.userInput).filter(Boolean);
 
   function splitLines(string) {
     return string.split(pSplitLines);
   }
 
-  // iterate over raw robot instruction; 2 elements form one instruction
+  // first line is always grid definition and gets shifted from lines array
+  this.gridCoordinates = lines.shift().match(pGridDefinition)[0].split(pSplitWhitespace);
+
+  // iterate over raw robot instruction; two elements form one robot instruction
   for (var i = 0; i < lines.length; i+=2) {
     var rawCoordinates = lines[i];
     var rawInstruction = lines [i+1];
@@ -56,7 +53,6 @@ UserInput.prototype.processInput = function (){
 };
 
 // build roboInstructions object and push it to instructions array
-// where should I verify grid not bigger than 50?
 UserInput.prototype.newRoboCommand = function newRoboCommand (x,y,direction,instruction) {
   var command = {
     x: x,
@@ -70,33 +66,32 @@ UserInput.prototype.newRoboCommand = function newRoboCommand (x,y,direction,inst
 // set up Planet grid constructor
 function Planet (gridCoordinates) {
 
-  // add 1 to width and height so smallest possible grid has 4 cells when entered 0,0 in first row
+  // add 1 to width and height so smallest possible grid has 4 cells when entered 0,0
   this.width = parseInt(gridCoordinates[0]) + 1;
   this.height = parseInt(gridCoordinates[1]) + 1;
 
-  // create cells array to push sented cells information
+  // create cells array to push scented cells information
   this.cells = new Array (this.height * this.width);
 }
 
-// check if value is scented
-Planet.prototype.valueAt = function (point) {
-  return this.cells[point.y * this.width + point.x];
+// check if cell is inside grid
+Planet.prototype.isInside = function (point) {
+  return point.x >= 0 && point.y >= 0 && point.x < this.width && point.y < this.height;
 };
 
-// scent cell
+// scent cell value
 Planet.prototype.scentAt = function (point) {
   this.cells[point.y * this.width + point.x] = "scent";
 };
 
-// check if cell is inside
-Planet.prototype.isInside = function (point) {
-  return point.x >= 0 && point.y >= 0 && point.x < this.width && point.y < this.height;
+// check value of cell
+Planet.prototype.valueAt = function (point) {
+  return this.cells[point.y * this.width + point.x];
 };
 
 
 // Robot constructor to build single robots
 function Robot (x, y, direction, instruction) {
-  this.directions = ["N", "E", "S", "W"];
   this.position = {
         x:parseInt(x),
         y:parseInt(y)
@@ -110,7 +105,7 @@ function Robot (x, y, direction, instruction) {
 Robot.prototype.move = function () {
 
   // if initial robot position is not in grid it gets ignored
-  if (mars.isInside(this.position)) {
+  if (global.mars.isInside(this.position)) {
     for (var i = 0; i < this.instruction.length; i++) {
 
       // take into account yet defined instruction - add more instructions here
@@ -118,37 +113,33 @@ Robot.prototype.move = function () {
       if (this.instruction.charAt(i) === 'R') {this.direction = (this.turnRight(this.direction));}
       if (this.instruction.charAt(i) === 'F') {
         this.moveForward();
-        if (this.lost === true) {
-        console.log("breaking out of here", this)
-          break;
-        }
 
+        // break out of iterating when robot is lost
+        if (this.lost === true) {break;}
       }
-
-      // break out of iterating when robot is lost
     }
 
-    // push result of move operation to output
+    // push result of move operation to output array
     if (this.lost === true) {
-      output.push(this.position.x + " " + this.position.y + " " + this.direction + " " + "LOST");
+      global.output.push(this.position.x + " " + this.position.y + " " + this.direction + " " + "LOST");
     } else {
-      output.push(this.position.x + " " + this.position.y + " " + this.direction);
+      global.output.push(this.position.x + " " + this.position.y + " " + this.direction);
     }
   }
 };
 
-// switch to before element in directions array
+// turn direction 90 degrees left
 Robot.prototype.turnLeft = function (direction) {
-  var currentDir = this.directions.indexOf(direction);
+  var currentDir = ["N", "E", "S", "W"].indexOf(direction);
   if(currentDir === 0){currentDir = 4;}
-  return this.directions[currentDir - 1];
+  return ["N", "E", "S", "W"][currentDir - 1];
 };
 
-// switch to next element in directions array
+// turn direction 90 degrees right
 Robot.prototype.turnRight = function (direction) {
-  var currentDir = this.directions.indexOf(direction);
+  var currentDir = ["N", "E", "S", "W"].indexOf(direction);
   if(currentDir === 3){currentDir = -1;}
-  return this.directions[currentDir + 1];
+  return ["N", "E", "S", "W"][currentDir + 1];
 };
 
 // move robot one cell in current direction
@@ -161,14 +152,14 @@ Robot.prototype.moveForward = function () {
   if (this.direction === "W") {this.position.x --;}
 
   // check if new position is outside grid
-  if (mars.isInside(this.position) === false) {
+  if (global.mars.isInside(this.position) === false) {
 
     // set position to before moving off grid
     this.position = oldPosition;
 
     // if this.position not scented mark robot as lost and scent position
-    if (mars.valueAt(this.position) !== "scent") {
-      mars.scentAt(this.position);
+    if (global.mars.valueAt(this.position) !== "scent") {
+      global.mars.scentAt(this.position);
       this.lost = true;
     }
   }
@@ -180,10 +171,10 @@ function initiate () {
 
   // iterate over robot instructions
   function startRobots (commands) {
-    output = [];
+    global.output = [];
     for (var i = 0; i < commands.length; i++) {
-      current = commands[i];
-      robot = new Robot (current.x, current.y, current.direction, current.instruction);
+      var current = commands[i];
+      var robot = new Robot (current.x, current.y, current.direction, current.instruction);
       robot.move();
     }
   }
@@ -194,26 +185,34 @@ function initiate () {
     var command = new UserInput(input);
 
     if (!command.userInput) {
-      alert("this input seems lousy! Did you enter it in the correct format?");
+      alert("This input is invalid! Did you enter it in the correct format?");
     } else {
       command.processInput();
+      if (command.gridCoordinates[0]>50 || command.gridCoordinates[1]>50) {
+        alert("Maximum grid value is 50");
+      }
 
-      // lay out current grid
-      mars = new Planet (command.gridCoordinates);
+      // only process build planet and process robot instructions if input is correct
+      else {
 
-      // process all user instructions
-      startRobots(command.roboInstructions);
-      document.getElementById("output").value = output.join("\n");
+        // lay out current grid
+        global.mars = new Planet (command.gridCoordinates);
+
+        // process all user instructions
+        startRobots(command.roboInstructions);
+
+        // push result to dom element
+        document.getElementById("output").value = global.output.join("\n");
+      }
     }
   };
 
-  // reset (global) variables
+  // reset the global object
   var clearClick = document.getElementById("clear");
   clearClick.onclick = function (){
     document.getElementById("instructions").value = "";
     document.getElementById("output").value = "";
-    output = [];
-    mars = {};
+    global = {};
   };
 }
 
